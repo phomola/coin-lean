@@ -4,13 +4,12 @@ open Lean
 structure Coin where
   minter : String
   balances : RBMap String Float (fun s1 s2 => compareOfLessAndEq s1 s2)
-  sentEvent : String -> String -> Float -> IO Unit
 
 instance : ToString Coin where
   toString coin := toString coin.balances.toList
 
-def newCoin (minter : String) (sentEvent : String -> String -> Float -> IO Unit) : Coin :=
-  { minter := minter, balances := RBMap.empty, sentEvent := sentEvent }
+def newCoin (minter : String) : Coin :=
+  { minter := minter, balances := RBMap.empty }
 
 def mint (coin : Coin) (receiver : String) (amount : Float) : Coin :=
   match coin.balances.find? receiver with
@@ -28,7 +27,7 @@ def send (coin : Coin) (sender : String) (receiver : String) (amount : Float) : 
     | _ => .ok { coin with balances := coin.balances.insert receiver amount }
 
 def main : IO Unit := do
-  let coin := newCoin "minter" fun sender receiver amount => IO.println s!"sent {amount} from {sender} to {receiver}"
+  let coin := newCoin "minter"
   let coin := mint coin "user1" 1.0
   let coin := mint coin "user2" 2.0
   match send coin "user1" "user2" 0.2 with
